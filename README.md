@@ -7,6 +7,8 @@ Mantis Bug Tracker (MantisBT)
 Screenshots
 -----------
 
+Alkante joins
+
 ![Screenshot of View Issues page](doc/modern_view_issues.png)
 
 ![Screenshot of My View page](doc/modern_my_view.png)
