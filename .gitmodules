@@ -1,0 +1,3 @@
+[submodule "mantisbt"]
+	path = mantisbt
+	url = https://github.com/Alkante/mantisbt.git

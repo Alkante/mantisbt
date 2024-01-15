@@ -1,0 +1,33 @@
+version: '3.5'
+services:
+  mantis_web:
+    build: ./build
+    container_name: mantis_web
+    command: entrypoint_dev
+    volumes:
+      - ./conf/apache_directory.conf:/var/www/html/conf/apache_directory.conf
+      - ./conf/config_inc.php:/var/www/html/mantisbt/config/config_inc.php
+      - ./mantisbt:/var/www/html/mantisbt
+    environment:
+      - TZ=Europe/Paris
+    env_file:
+      - ./docker-compose.env
+    ports:
+      - "127.0.0.1:2121:80"
+
+  mantis_db:
+    image: mariadb:10
+    container_name: mantis_db
+    volumes:
+      - ./var/data:/var/lib/mysql
+    environment:
+      - TZ=Europe/Paris
+    env_file:
+      - ./conf/db.env
+    networks:
+      default:
+        aliases:
+          - "database"
+networks:
+  default:
+    name: mantis
