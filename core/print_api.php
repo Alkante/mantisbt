@@ -287,11 +287,25 @@ function print_user_option_list( $p_user_id, $p_project_id = null, $p_access = A
 				$t_users[$t_id] = $t_user;
 			}
 			# Clear the array to release memory
-			unset( $t_project_users_list );
+			unset( $t_project_users_list, $t_id, $t_user );
+            # Get all project reporters ( even if they no longer have access to it )
+			$t_project_historical_user_list = project_get_all_historical_user_rows( $t_project_id, $p_access );
+			foreach( $t_project_historical_user_list as $t_id => $t_user ) {
+				$t_users[$t_id] = $t_user;
+			}
+			# Clear the array to release memory
+			unset( $t_project_historical_user_list, $t_id, $t_user );
 		}
 		unset( $t_projects );
 	} else {
 		$t_users = project_get_all_user_rows( $p_project_id, $p_access );
+        # Get all project reporters ( even if they no longer have access to it )
+		$t_project_historical_user_list = project_get_all_historical_user_rows( $p_project_id, $p_access );
+		foreach( $t_project_historical_user_list as $t_id => $t_user ) {
+			$t_users[$t_id] = $t_user;
+		}
+		# Clear the array to release memory
+		unset( $t_project_historical_user_list, $t_id, $t_user );
 	}
 
 	# Add the specified user ID to the list
@@ -1910,7 +1924,7 @@ function print_bug_attachment( array $p_attachment, $p_security_token ) {
 	if( $p_attachment['preview'] || $p_attachment['type'] === 'audio' || $p_attachment['type'] === 'video' ) {
 		$t_collapse_id = 'attachment_preview_' . $p_attachment['id'];
 		global $g_collapse_cache_token;
-		$g_collapse_cache_token[$t_collapse_id] = 
+		$g_collapse_cache_token[$t_collapse_id] =
 			$p_attachment['type'] == 'image' ||
 			$p_attachment['type'] == 'audio' ||
 			$p_attachment['type'] == 'video';
@@ -1949,17 +1963,17 @@ function print_bug_attachment( array $p_attachment, $p_security_token ) {
 		if( $p_attachment['type'] === 'audio' || $p_attachment['type'] === 'video' ) {
 			echo lang_get( 'word_separator' );
 			collapse_icon( $t_collapse_id );
-	
+
 			print_bug_attachment_preview_audio_video(
 				$p_attachment,
 				$p_attachment['file_type'],
 				$p_attachment['preview'] );
-	
+
 			collapse_closed( $t_collapse_id );
 			print_bug_attachment_header( $p_attachment, $p_security_token );
 			echo lang_get( 'word_separator' );
 			collapse_icon( $t_collapse_id );
-			collapse_end( $t_collapse_id );	
+			collapse_end( $t_collapse_id );
 		} else {
 			echo '<br />';
 		}

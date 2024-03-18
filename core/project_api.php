@@ -742,6 +742,56 @@ function project_get_all_user_rows( $p_project_id = ALL_PROJECTS, $p_access_leve
 }
 
 /**
+ * Return an array of info about users who have or had access to the the given project
+ * For each user we have 'id', 'username', and 'access_level' (overall access level)
+ * If the second parameter is given, return only users who had an access level
+ * higher than the given value.
+ * if the first parameter is given as 'ALL_PROJECTS', return the global access level (without
+ * any reference to the specific project
+ * @param integer $p_project_id           A project identifier.
+ * @param integer $p_access_level         Access level.
+ * @return array List of users, array key is user ID
+ */
+function project_get_all_historical_user_rows( $p_project_id, $p_access_level = ANYBODY ) {
+	$c_project_id = (int)$p_project_id;
+
+	# Optimization when access_level is NOBODY
+	if( NOBODY == $p_access_level ) {
+		return array();
+	}
+
+	$t_users = array();
+
+	if( $c_project_id != ALL_PROJECTS ) {
+		$t_query = new DbQuery();
+		$t_query->sql( 'SELECT u.id, u.username, u.realname, u.access_level 
+			FROM `mantis_bug_table` b, {user} u
+			WHERE b.reporter_id = u.id
+			AND b.project_id = ' . $t_query->param( $c_project_id )
+		);
+		$t_query->execute();
+
+		while( $t_row = $t_query->fetch() ) {
+			if( is_array( $p_access_level ) ) {
+				$t_keep = in_array( $t_row['access_level'], $p_access_level );
+			} else {
+				$t_keep = $t_row['access_level'] >= $p_access_level;
+			}
+
+			if( $t_keep ) {
+				$t_users[(int)$t_row['id']] = $t_row;
+			} else {
+				# If user's overridden level is lower than required, so remove
+				#  them from the list if they were previously there
+				unset( $t_users[(int)$t_row['id']] );
+			}
+		}
+	}
+
+	return $t_users;
+}
+
+/**
  * Returns the upload path for the specified project, empty string if
  * file_upload_method is DATABASE
  * @param integer $p_project_id A project identifier.
